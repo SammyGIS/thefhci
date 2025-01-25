@@ -1,0 +1,13 @@
+[build]
+  base = "farmkrishealth" # Path to your project folder
+  command = "next build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  GO_VERSION = "1.19"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,11 @@
+[build]
+  publish = "dist" # Relative to sanity
+  command = "sanity build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

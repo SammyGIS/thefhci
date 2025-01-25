@@ -1,0 +1,7 @@
+[submodule "farmkrishealth"]
+    path = farmkrishealth
+    url = https://github.com/Mykol5/farmkris
+
+[submodule "sanity"]
+    path = sanity
+    url = https://github.com/Mykol5/farmkris

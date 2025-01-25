@@ -1,0 +1,9 @@
+{
+    "name": "famkris",
+    "private": true,
+    "workspaces": [
+      "farmkrishealth",
+      "sanity"
+    ]
+  }
+  
