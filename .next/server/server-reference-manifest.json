@@ -1,0 +1,17 @@
+{
+  "node": {
+    "7f5ca86292dc45bfe6b460a7514572454e99b4d690": {
+      "workers": {
+        "app/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fmacbookpro17%2FDocuments%2FWeb%20Dev%2FProjects%2Fthefhci%2Fnode_modules%2Fnext-sanity%2Fdist%2Fvisual-editing%2Fserver-actions.js%22%2C%5B%5B%227f5ca86292dc45bfe6b460a7514572454e99b4d690%22%2C%22revalidateRootLayout%22%5D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/page": "action-browser"
+      }
+    }
+  },
+  "edge": {},
+  "encryptionKey": "x3/3BFu10n5NFrheuSnoO7u5tpNP0qPkBgfZsKhLbxQ="
+}
