@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
+    "@portabletext/react": "^3.1.0",
     "@netlify/plugin-nextjs": "^5.9.3",
     "@sanity/client": "^6.24.3",
     "@sanity/image-url": "^1.1.0",
@@ -24,7 +25,8 @@
     "react-icons": "^5.4.0",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "react-fast-marquee": "^1.6.5"
   },
   "devDependencies": {
     "postcss": "^8",
