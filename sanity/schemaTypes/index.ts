@@ -18,6 +18,7 @@ import {areaOfExpertise} from './areaOfExpertise'
 import {ongoingProjects} from './ongoingProject'
 import {completedProjects} from './completedProject'
 import {imageSlider} from './imageSlider'
+import {impactStats} from './impactStats'
 
 export const schemaTypes = [
   article,
@@ -40,4 +41,5 @@ export const schemaTypes = [
   ongoingProjects,
   completedProjects,
   imageSlider,
+  impactStats,
 ]

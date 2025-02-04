@@ -12,14 +12,41 @@ export const imageSlider = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'images',
-      title: 'Images',
+      name: 'slides',
+      title: 'Slides',
       type: 'array',
       of: [
         {
-          type: 'image',
-          options: {
-            hotspot: true,
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'image',
+              title: 'Image',
+              type: 'image',
+              options: {
+                hotspot: true,
+              },
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'title',
+              title: 'Slide Title',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'description',
+              title: 'Description',
+              type: 'text',
+              validation: (Rule) => Rule.optional().max(500),
+            }),
+          ],
+          preview: {
+            select: {
+              title: 'title',
+              subtitle: 'description',
+              media: 'image',
+            },
           },
         },
       ],
@@ -29,13 +56,13 @@ export const imageSlider = defineType({
   preview: {
     select: {
       title: 'title',
-      media: 'images.0',
+      media: 'slides.0.image',
     },
     prepare(selection) {
-      const {title} = selection
+      const {title, media} = selection
       return {
         title: title || 'No title',
-        media: selection.media,
+        media,
       }
     },
   },

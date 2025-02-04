@@ -1,5 +1,7 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
+  "/who-we-are/page": "app/who-we-are/page.js",
+  "/what-we-do/expertise/[id]/page": "app/what-we-do/expertise/[id]/page.js",
+  "/what-we-do/page": "app/what-we-do/page.js",
   "/page": "app/page.js",
-  "/what-we-do/page": "app/what-we-do/page.js"
+  "/contact-us/page": "app/contact-us/page.js"
 }

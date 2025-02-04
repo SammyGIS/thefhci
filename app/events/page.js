@@ -1,256 +1,212 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar } from "react-calendar"; // Install react-calendar using yarn
 import "react-calendar/dist/Calendar.css";
+import {
+  useFetchUpcomingEvents,
+  useFetchPastEvents,
+} from "../hooks/useFetchPage";
+import Loading from "../components/Loading";
+import Image from "next/image";
+import { urlFor } from "../sanity/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import ImageSlider from "../components/ImageSlider";
 
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState("Upcoming");
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [modalData, setModalData] = useState(null);
 
+  const { upcomingEvents, loading, error } = useFetchUpcomingEvents();
+  const { pastEvents } = useFetchPastEvents();
+
   const data = {
-    Upcoming: [
-      {
-        image: "/images/eventimg.jpg",
-        title: "Tech Innovation Conference 2024",
-        date: "2024-05-15",
-        location: "Lagos, Nigeria",
-        description: "Join industry leaders to discuss the future of tech innovations.",
-        registrationLink: "#",
-      },
-      {
-        image: "/images/eventimg.jpg",
-        title: "Healthcare Summit",
-        date: "2024-06-05",
-        location: "Abuja, Nigeria",
-        description:
-          "A platform for healthcare professionals to network and share ideas.",
-        registrationLink: "#",
-      },
-      // Added event for December 30, 2024
-      {
-        image: "/images/eventimg.jpg",
-        title: "End of Year Party",
-        date: "2024-12-30",
-        location: "Lagos, Nigeria",
-        description: "Join us to celebrate the end of the year with a grand party.",
-        registrationLink: "#",
-      },
-    ],
-    Past: [
-      {
-        image: "/images/eventimg.jpg",
-        title: "Sustainability Forum 2023",
-        date: "2023-10-10",
-        highlightsLink: "#",
-        description: "Key insights into sustainable practices and innovations.",
-      },
-      {
-        image: "/images/eventimg.jpg",
-        title: "Global Health Conference 2023",
-        date: "2023-07-20",
-        highlightsLink: "#",
-        description: "Highlights from one of our most impactful events to date.",
-      },
-    ],
+    Upcoming: upcomingEvents,
+    Past: pastEvents,
   };
 
-  const filteredEvents = data[activeTab].filter((event) => {
-    const eventDate = new Date(event.date);
-    return (
-      activeTab === "Upcoming"
-        ? eventDate >= new Date() && eventDate.toDateString() === selectedDate.toDateString()
-        : eventDate < new Date()
-    );
-  });
+  if (loading) {
+    return <Loading />;
+  }
+  if (error) {
+    return <div>Error</div>;
+  }
 
-  const upcomingEventDates = data.Upcoming.map((event) => new Date(event.date));
+  const openModal = (event) => {
+    setModalData(event);
+  };
 
-  const tileClassName = ({ date }) => {
-    return upcomingEventDates.some(
-      (eventDate) => eventDate.toDateString() === date.toDateString()
-    )
-      ? "highlighted-date"
-      : "";
+  const closeModal = () => {
+    setModalData(null);
   };
 
   return (
-    <div>
+    <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <section
-        className="relative h-64 bg-cover bg-center"
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className="relative h-80 bg-cover bg-center"
         style={{ backgroundImage: `url('/images/events.png')` }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
-          <h1 className="text-4xl text-white font-bold">Events</h1>
-          <p className="text-white mt-4 max-w-xl text-center">
-            Stay up to date with our upcoming and past events.
-          </p>
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center">
+          <motion.h1
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="text-5xl text-white font-bold"
+          >
+            Events
+          </motion.h1>
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
+            className="text-white mt-4 max-w-xl text-center text-lg"
+          >
+            Stay informed about upcoming events and learn more about past
+            events.
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Tabs Section */}
-      <div className="bg-gray-100 py-4">
+      <div className="bg-white shadow-md py-6 sticky top-0 z-10">
         <div className="container mx-auto flex justify-center space-x-4">
           {["Upcoming", "Past"].map((tab) => (
-            <button
+            <motion.button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded ${
+              className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
-                  : "bg-white text-green-600"
-              } transition`}
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              } transition-all duration-300 ease-in-out`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {tab}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
 
-      {/* Calendar for Upcoming Events */}
-      {activeTab === "Upcoming" && (
-        <div className="container mx-auto my-8">
-          <h2 className="text-lg font-semibold text-gray-800 text-center">Filter by Date:</h2>
-          <div className="flex justify-center mt-4">
-            <Calendar
-              onChange={setSelectedDate}
-              value={selectedDate}
-              className="border shadow-md"
-              tileClassName={tileClassName}
-              showNeighboringMonth={false}
-            />
-          </div>
-          <style jsx global>{`
-            .react-calendar {
-              border: none;
-              font-family: Arial, Helvetica, sans-serif;
-              background-color: #f0f8ff; /* Changed the background color */
-              border-radius: 10px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-              width: 100%;
-              max-width: 800px; /* Increased the width */
-              color: red;
-            }
-            .react-calendar__tile {
-              padding: 15px;
-              border-radius: 5px;
-              transition: 0.3s;
-              color: #000;
-              background-color: #f0f8ff; /* Changed the background color */
-            }
-            .react-calendar__tile--active {
-              background: #2d8a56;
-              color: green;
-              border-radius: 5px;
-            }
-            .react-calendar__tile--now {
-              background: #e0f7ec;
-            }
-            .highlighted-date {
-              background: #ffd700;
-              color: black !important;
-              font-weight: bold;
-              border-radius: 5px;
-            }
-          `}</style>
-        </div>
-      )}
-
-      {/* Events Content */}
-      <div className="container mx-auto py-8">
-        {filteredEvents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {filteredEvents.map((event, index) => (
-              <div
+      {/* Events Grid */}
+      <div className="container mx-auto py-12">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {data[activeTab].map((event, index) => (
+              <motion.div
                 key={index}
-                className="bg-white rounded-lg shadow-lg cursor-pointer"
-                onClick={() => setModalData(event)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden"
               >
-                <img
-                  src={event.image}
+                <Image
+                  src={urlFor(event?.image || event?.eventImages[0]).url()}
+                  width={544}
+                  height={192}
                   alt={event.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
+                  className="object-cover object-center w-full h-64"
                 />
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-green-700">{event.title}</h3>
-                  <p className="text-gray-700 mt-1">
-                    <strong>Date:</strong> {new Date(event.date).toDateString()}
+                <div className="p-6">
+                  <h3 className="text-2xl font-bold text-green-700 mb-2">
+                    {event.title}
+                  </h3>
+                  <p className="text-gray-600 mb-2">
+                    <strong>Date:</strong>{" "}
+                    {new Date(event.eventDate).toDateString()}
                   </p>
-                  <p className="text-gray-700">
-                    <strong>Location:</strong> {event.location}
+                  <p className="text-gray-700 mt-2 line-clamp-3">
+                    {event.description}
                   </p>
-                  <p className="text-gray-700 mt-2 truncate">{event.description}</p>
+                  <motion.button
+                    onClick={() => openModal(event)}
+                    className="mt-4 inline-block px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    View Details
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-600">No events found for the selected date.</p>
-        )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Past Events */}
-      {activeTab === "Past" && (
-        <div className="container mx-auto py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {data.Past.map((event, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg">
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-green-700">{event.title}</h3>
-                  <p className="text-gray-700 mt-1">
-                    <strong>Date:</strong> {new Date(event.date).toDateString()}
-                  </p>
-                  <p className="text-gray-700 mt-2">{event.description}</p>
-                  <a
-                    href={event.highlightsLink}
-                    className="mt-4 inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    View Highlights
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Modal for Event Details */}
-      {modalData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 shadow-lg max-w-lg w-full">
-            <h2 className="text-2xl font-bold mb-4">{modalData.title}</h2>
-            <p className="text-gray-700">
-              <strong>Date:</strong> {new Date(modalData.date).toDateString()}
-            </p>
-            <p className="text-gray-700">
-              <strong>Location:</strong> {modalData.location}
-            </p>
-            <p className="text-gray-700 mt-4">{modalData.description}</p>
-            {modalData.registrationLink && (
-              <a
-                href={modalData.registrationLink}
-                className="mt-4 inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Register Now
-              </a>
-            )}
-            <button
-              onClick={() => setModalData(null)}
-              className="mt-6 inline-block px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      <AnimatePresence>
+        {modalData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={closeModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 15 }}
+              className="bg-white rounded-2xl p-8 shadow-2xl max-w-2xl w-full"
+              onClick={(e) => e.stopPropagation()}
             >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
+              <h2 className="text-3xl font-bold text-green-700 mb-4">
+                {modalData.title}
+              </h2>
+              <p className="text-gray-700 mb-2">
+                <strong>Date:</strong>{" "}
+                {new Date(modalData.eventDate).toDateString()}
+              </p>
+              <p className="text-gray-700 mb-4">
+                <strong>Location:</strong> {modalData.location || "TBA"}
+              </p>
+              {modalData.eventImages && modalData.eventImages.length > 0 && (
+                <>
+                  <p className="font-semibold text-lg mb-2 text-gray-700">
+                    Highlights
+                  </p>
+                  <ImageSlider images={modalData.eventImages} />
+                </>
+              )}
+              <p className="text-gray-700 mt-4 mb-6">{modalData.description}</p>
+              {modalData.link && (
+                <p className="mb-6 text-gray-700">
+                  Register Here: {"  "}
+                  <a
+                    href={modalData.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block text-green-600 font-semibold underline"
+                  >
+                    {modalData.link}
+                  </a>
+                </p>
+              )}
+              <div className="flex justify-between items-center">
+                <motion.button
+                  onClick={closeModal}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg text-lg font-semibold hover:bg-gray-300 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Close
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

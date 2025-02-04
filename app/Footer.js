@@ -12,9 +12,9 @@ export default function Footer() {
   ];
 
   const navigationLinks = [
-    { label: "About Us", link: "#" },
-    { label: "Where we Work", link: "#" },
-    { label: "Success Stories", link: "#" },
+    { label: "About Us", link: "/who-we-are" },
+    { label: "What We Do", link: "/what-we-do" },
+    { label: "Careers", link: "/careers" },
     { label: "Contact Us", link: "/contact-us" },
   ];
 
@@ -33,8 +33,7 @@ export default function Footer() {
               FamKris HealthCare Initiatives
             </h3>
           </div>
-          <p>Corporate Headquarters</p>
-          <p>Plot 2435, Lorem Ipsum Zone C,</p>
+          <p>CSuite C2, Trow Plaza, Jabi, </p>
           <p>FCT, Abuja.</p>
           <div className="flex space-x-4 mt-4">
             {socialLinks.map((social, index) => (
@@ -64,9 +63,11 @@ export default function Footer() {
 
         {/* Subscribe Section */}
         <div>
-          <h4 className="text-lg font-semibold mb-4">Subscribe to our newsletter</h4>
+          <h4 className="text-lg font-semibold mb-4">
+            Subscribe to our newsletter
+          </h4>
           <p className="mb-4">
-            Subscribe to get the latest news from FamKris HealthCare Initiatives.
+            Subscribe and be first to know about our latest updates
           </p>
           <form className="flex space-x-2">
             <input
@@ -103,11 +104,6 @@ export default function Footer() {
     </footer>
   );
 }
-
-
-
-
-
 
 // "use client"; // Make this a client component
 
