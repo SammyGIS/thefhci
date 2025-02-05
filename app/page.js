@@ -20,6 +20,7 @@ import { PortableText } from "@portabletext/react";
 import { components } from "./lib/portableText";
 import Marquee from "react-fast-marquee";
 import HeroCarousel from "./components/HeroCarousel";
+import SubscriptionModal from "./components/SubscriptionModal";
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(false);
@@ -34,7 +35,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPopup(true);
-    }, 5000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -195,7 +196,7 @@ export default function Home() {
           <div>
             {completedProjects ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-                {completedProjects.map((project, index) => (
+                {completedProjects.slice(0, 3).map((project, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 50 }}
@@ -502,56 +503,7 @@ export default function Home() {
       </motion.section>
 
       {/* Subscription Pop-Up Modal */}
-      <AnimatePresence>
-        {showPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white p-8 rounded-xl w-96 text-center transform transition-all duration-300 ease-in-out shadow-xl relative bg-opacity-90"
-            >
-              <button
-                onClick={() => setShowPopup(false)}
-                className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 font-semibold text-xl"
-              >
-                &times;
-              </button>
-
-              <h3 className="text-3xl font-extrabold mb-6 text-gray-900">
-                Stay Updated with Our Latest News!
-              </h3>
-              <p className="text-lg mb-6 text-gray-600">
-                Subscribe to our newsletter and get the latest updates, offers,
-                and insights directly in your inbox. Join our community now!
-              </p>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 mb-4 border-2 border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition-all duration-200"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSubscribe}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-500 transition-all duration-300"
-              >
-                Subscribe Now
-              </motion.button>
-              <p className="mt-4 text-sm text-gray-500">
-                We respect your privacy. Your email is safe with us.
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <SubscriptionModal showPopup={showPopup} setShowPopup={setShowPopup} />
     </motion.div>
   );
 }

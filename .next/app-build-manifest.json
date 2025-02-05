@@ -11,15 +11,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/careers/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/careers/page.js"
-    ],
     "/what-we-do/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/what-we-do/page.js"
+    ],
+    "/what-we-do/completed/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/what-we-do/completed/[id]/page.js"
     ],
     "/who-we-are/page": [
       "static/chunks/webpack.js",
@@ -43,15 +43,10 @@
       "static/css/app/events/page.css",
       "static/chunks/app/events/page.js"
     ],
-    "/media/[slug]/page": [
+    "/careers/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/media/[slug]/page.js"
-    ],
-    "/what-we-do/completed/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/what-we-do/completed/[id]/page.js"
+      "static/chunks/app/careers/page.js"
     ],
     "/what-we-do/expertise/[id]/page": [
       "static/chunks/webpack.js",
@@ -67,6 +62,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/contact-us/page.js"
+    ],
+    "/media/[slug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/media/[slug]/page.js"
     ]
   }
 }

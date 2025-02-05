@@ -12,11 +12,14 @@ import { PortableText } from "@portabletext/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { components } from "../lib/portableText";
 import { OctagonX } from "lucide-react";
+import Pagination from "../components/Pagination";
 
 const CareersPage = () => {
   const [activeTab, setActiveTab] = useState("Job Openings");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { jobOpenings, loading, error } = useFetchJobOpenings();
   const { volunteers } = useFetchVolunteers();
@@ -56,6 +59,17 @@ const CareersPage = () => {
     setSelectedPosition(null);
   };
 
+  const paginatedData = jobData[activeTab].slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(jobData[activeTab].length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
@@ -87,11 +101,6 @@ const CareersPage = () => {
               contribute to our mission of improving healthcare access and
               quality for underserved communities in Africa.
             </span>
-            {/*<span>*/}
-            {/*  Whether you’re looking to advance your career, gain practical*/}
-            {/*  experience, or make a difference as a volunteer, we offer*/}
-            {/*  opportunities for you to contribute to meaningful change.*/}
-            {/*</span>*/}
           </motion.p>
         </div>
       </motion.section>
@@ -102,7 +111,10 @@ const CareersPage = () => {
           {["Job Openings", "Internships", "Volunteer"].map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setCurrentPage(1);
+              }}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -139,11 +151,10 @@ const CareersPage = () => {
             community development by joining our internship program.
           </p>
         )}
-
         {activeTab === "Volunteer" && (
           <p className="text-gray-700 text-center mb-10 max-w-lg mx-auto">
             Join us on our mission to improve health and well-being for all.
-            You’ll work directly with communities, support our projects, and be
+            You'll work directly with communities, support our projects, and be
             a part of initiatives that create lasting change.
           </p>
         )}
@@ -156,7 +167,7 @@ const CareersPage = () => {
             transition={{ duration: 0.5 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {jobData[activeTab].map((position, index) => (
+            {paginatedData.map((position, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -193,6 +204,11 @@ const CareersPage = () => {
             ))}
           </motion.div>
         </AnimatePresence>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Apply Modal */}
@@ -238,21 +254,18 @@ const CareersPage = () => {
                       {selectedPosition.volunteerType}
                     </p>
                   )}
-
                   {selectedPosition?.internshipType && (
                     <p>
                       <strong>Internship Type:</strong>{" "}
                       {selectedPosition.internshipType}
                     </p>
                   )}
-
                   {selectedPosition?.duration && (
                     <p>
                       <strong>Duration:</strong>
                       {selectedPosition.duration}
                     </p>
                   )}
-
                   {selectedPosition?.startDate && (
                     <p>
                       <strong>Start Date:</strong>
@@ -290,4 +303,5 @@ const CareersPage = () => {
     </div>
   );
 };
+
 export default CareersPage;

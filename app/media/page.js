@@ -11,14 +11,17 @@ import Loading from "../components/Loading";
 import Image from "next/image";
 import Link from "next/link";
 import { urlFor } from "../sanity/utils";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Calendar, Tag } from "lucide-react";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
+import Pagination from "../components/Pagination";
 
 const MediaPage = () => {
   const [activeTab, setActiveTab] = useState("Articles");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { articles, loading, error } = useFetchArticles();
   const { videos } = useFetchVideos();
@@ -44,6 +47,26 @@ const MediaPage = () => {
 
   const closeLightbox = () => {
     setLightboxOpen(false);
+  };
+
+  const paginatedData = tabContent[activeTab].slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(tabContent[activeTab].length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
   return (
@@ -72,7 +95,7 @@ const MediaPage = () => {
             className="text-white mt-4 max-w-xl text-center text-lg"
           >
             Explore our mission through stories, visuals, and insights that
-            capture the impact of our work.{" "}
+            capture the impact of our work.
           </motion.p>
         </div>
       </motion.section>
@@ -83,7 +106,10 @@ const MediaPage = () => {
           {Object.keys(tabContent).map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setCurrentPage(1);
+              }}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -121,7 +147,6 @@ const MediaPage = () => {
                 Watch inspiring videos that showcase our work
               </p>
             )}
-
             {activeTab === "Gallery" && (
               <p className="text-gray-700 text-center mb-10 max-w-lg mx-auto">
                 Explore a collection of moments captured to tell our story
@@ -129,7 +154,7 @@ const MediaPage = () => {
             )}
             {activeTab === "Articles" && (
               <div className="space-y-8 max-w-4xl mx-auto">
-                {articles.map((article, index) => (
+                {paginatedData.map((article, index) => (
                   <motion.div
                     key={article.slug.current}
                     initial={{ opacity: 0, y: 20 }}
@@ -149,6 +174,21 @@ const MediaPage = () => {
                         <h3 className="text-2xl font-bold text-green-700 mb-2">
                           {article.title}
                         </h3>
+                        <div className="flex items-center text-gray-600 mb-2">
+                          <Calendar size={16} className="mr-2" />
+                          <span>{formatDate(article._createdAt)}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {article.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                            >
+                              <Tag size={12} className="mr-1" />
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                         <p className="text-gray-600 mt-2">{article.excerpt}</p>
                       </div>
                       <Link
@@ -167,7 +207,7 @@ const MediaPage = () => {
             )}
             {activeTab === "Videos" && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {videos.map((video, index) => (
+                {paginatedData.map((video, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
@@ -212,13 +252,13 @@ const MediaPage = () => {
             )}
             {activeTab === "Gallery" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {gallery.map((image, index) => (
+                {paginatedData.map((image, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="relative overflow-hidden rounded-xl group cursor-pointer"
+                    className="relative overflow-hidden group cursor-pointer"
                     onClick={() => openLightbox(index)}
                   >
                     <Image
@@ -228,20 +268,20 @@ const MediaPage = () => {
                       height={300}
                       className="w-full h-64 object-cover transition duration-300 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {image.title}
-                        </h3>
-                        <p className="text-white text-sm">
-                          {image.description}
-                        </p>
-                      </div>
+                    <div className="p-4 bg-white">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {image.title}
+                      </h3>
                     </div>
                   </motion.div>
                 ))}
               </div>
             )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </motion.div>
         </AnimatePresence>
       </div>

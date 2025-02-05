@@ -26,7 +26,7 @@ const ImageSlider = ({ images, interval = 3000 }) => {
   };
 
   return (
-    <div className="relative w-full h-64 overflow-hidden rounded-lg">
+    <div className="relative w-full md:h-[40rem] h-96 overflow-hidden">
       <AnimatePresence initial={false} custom={currentIndex}>
         <motion.div
           key={currentIndex}

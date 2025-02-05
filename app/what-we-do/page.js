@@ -1,20 +1,42 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import {
   useFetchAreaOfExpertise,
   useFetchOngoingProjects,
   useFetchCompletedProjects,
 } from "../hooks/useFetchPage";
-import { urlFor } from "../sanity/utils";
 import Loading from "../components/Loading";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import ProjectCard from "../components/ProjectCard";
+import ExpertiseSlider from "../components/ExpertiseSlider";
 
 export default function WhatWeDo() {
   const { ongoingProjects, loading, error } = useFetchOngoingProjects();
   const { completedProjects } = useFetchCompletedProjects();
   const { areaOfExpertise } = useFetchAreaOfExpertise();
+
+  const [currentOngoingPage, setCurrentOngoingPage] = useState(1);
+  const [currentCompletedPage, setCurrentCompletedPage] = useState(1);
+  const projectsPerPage = 6;
+
+  const indexOfLastOngoing = currentOngoingPage * projectsPerPage;
+  const indexOfFirstOngoing = indexOfLastOngoing - projectsPerPage;
+  const currentOngoingProjects = ongoingProjects?.slice(
+    indexOfFirstOngoing,
+    indexOfLastOngoing,
+  );
+
+  const indexOfLastCompleted = currentCompletedPage * projectsPerPage;
+  const indexOfFirstCompleted = indexOfLastCompleted - projectsPerPage;
+  const currentCompletedProjects = completedProjects?.slice(
+    indexOfFirstCompleted,
+    indexOfLastCompleted,
+  );
+
+  const paginateOngoing = (pageNumber) => setCurrentOngoingPage(pageNumber);
+  const paginateCompleted = (pageNumber) => setCurrentCompletedPage(pageNumber);
 
   if (loading) {
     return <Loading />;
@@ -41,37 +63,29 @@ export default function WhatWeDo() {
           >
             Ongoing Projects
           </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ongoingProjects.map((project, index) => (
-              <motion.div
-                key={project._id}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden"
-              >
-                <img
-                  src={urlFor(project.image).url() || "/placeholder.svg"}
-                  alt={project.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    {project.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {project.description}
-                  </p>
-                  <Link
-                    href={`/what-we-do/ongoing/${project._id}`}
-                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                  >
-                    Read More <ChevronRight size={20} className="ml-2" />
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {ongoingProjects?.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {currentOngoingProjects.map((project, index) => (
+                  <ProjectCard
+                    key={project._id}
+                    project={project}
+                    type="ongoing"
+                  />
+                ))}
+              </div>
+              <Pagination
+                projectsPerPage={projectsPerPage}
+                totalProjects={ongoingProjects.length}
+                paginate={paginateOngoing}
+                currentPage={currentOngoingPage}
+              />
+            </>
+          ) : (
+            <div className="text-center text-gray-600">
+              No ongoing projects found
+            </div>
+          )}
         </div>
       </section>
 
@@ -86,33 +100,24 @@ export default function WhatWeDo() {
           >
             Completed Projects
           </motion.h2>
-          {completedProjects ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {completedProjects.map((project, index) => (
-                <motion.div
-                  key={project._id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="relative cursor-pointer group overflow-hidden rounded-xl shadow-lg"
-                >
-                  <Link href={`/what-we-do/completed/${project._id}`}>
-                    <img
-                      src={
-                        urlFor(project?.images[0]).url() || "/placeholder.svg"
-                      }
-                      alt={project?.title}
-                      className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <h3 className="text-white text-xl font-bold px-4 text-center">
-                        {project?.title}
-                      </h3>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+          {completedProjects?.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {currentCompletedProjects.map((project) => (
+                  <ProjectCard
+                    key={project._id}
+                    project={project}
+                    type="completed"
+                  />
+                ))}
+              </div>
+              <Pagination
+                projectsPerPage={projectsPerPage}
+                totalProjects={completedProjects.length}
+                paginate={paginateCompleted}
+                currentPage={currentCompletedPage}
+              />
+            </>
           ) : (
             <div className="text-center text-gray-600">
               No completed projects found
@@ -128,45 +133,12 @@ export default function WhatWeDo() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl font-bold text-green-600 mb-5 text-center"
+            className="text-4xl font-bold text-green-600 mb-12 text-center"
           >
             Areas of Expertise
           </motion.h2>
-          <p className="text-gray-700 mb-12 max-w-xl mx-auto text-center">
-            At FHCI, we are committed to addressing the pressing health
-            challenges faced by underserved communities in Africa and improving
-            their health outcomes by focusing on these key areas:
-          </p>
           {areaOfExpertise ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {areaOfExpertise.map((area, index) => (
-                <motion.div
-                  key={area._id}
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-white p-6 rounded-xl shadow-lg text-center flex flex-col justify-between transform transition duration-300 hover:scale-105 hover:shadow-xl"
-                >
-                  <img
-                    src={urlFor(area.image).url() || "/placeholder.svg"}
-                    alt={area.title}
-                    className="w-24 h-24 object-cover rounded-full mx-auto mb-6"
-                  />
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">
-                    {area.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {area.description.substring(0, 100)}...
-                  </p>
-                  <Link
-                    href={`/what-we-do/expertise/${area._id}`}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                  >
-                    Learn More <ChevronRight size={20} className="ml-2" />
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+            <ExpertiseSlider areaOfExpertise={areaOfExpertise} />
           ) : (
             <div className="text-center text-gray-600">
               No areas of expertise found
@@ -177,3 +149,57 @@ export default function WhatWeDo() {
     </motion.div>
   );
 }
+
+const Pagination = ({
+  projectsPerPage,
+  totalProjects,
+  paginate,
+  currentPage,
+}) => {
+  const pageNumbers = [];
+
+  for (let i = 1; i <= Math.ceil(totalProjects / projectsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <nav className="mt-8 flex justify-center">
+      <ul className="flex space-x-2">
+        {currentPage > 1 && (
+          <li>
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-300"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          </li>
+        )}
+        {pageNumbers.map((number) => (
+          <li key={number}>
+            <button
+              onClick={() => paginate(number)}
+              className={`px-3 py-1 rounded-md transition-colors duration-300 ${
+                currentPage === number
+                  ? "bg-green-600 text-white"
+                  : "bg-white text-green-600 hover:bg-green-100"
+              }`}
+            >
+              {number}
+            </button>
+          </li>
+        ))}
+        {currentPage < pageNumbers.length && (
+          <li>
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-300"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </li>
+        )}
+      </ul>
+    </nav>
+  );
+};

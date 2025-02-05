@@ -116,7 +116,7 @@ const HeroCarousel = ({ slider }) => {
                 >
                   <Link
                     href="/what-we-do"
-                    className="inline-block bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-500 transition-colors text-lg font-semibold"
+                    className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-500 transition-colors text-lg font-semibold"
                   >
                     Learn More
                   </Link>

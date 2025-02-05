@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "createdAt": "2024-11-03T18:07:10.836Z",
+  "createdAt": "2025-02-04T08:08:00.564Z",
   "workspaces": [
     {
       "name": "default",
-      "title": "mosun-portfolio",
+      "title": "thefhci",
       "basePath": "/",
       "dataset": "production",
-      "schema": "268002ce.create-schema.json"
+      "schema": "fd43929c.create-schema.json"
     }
   ]
 }

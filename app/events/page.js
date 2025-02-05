@@ -11,10 +11,14 @@ import Image from "next/image";
 import { urlFor } from "../sanity/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageSlider from "../components/ImageSlider";
+import Pagination from "../components/Pagination";
+import { X } from "lucide-react";
 
 const EventsPage = () => {
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [modalData, setModalData] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { upcomingEvents, loading, error } = useFetchUpcomingEvents();
   const { pastEvents } = useFetchPastEvents();
@@ -37,6 +41,17 @@ const EventsPage = () => {
 
   const closeModal = () => {
     setModalData(null);
+  };
+
+  const paginatedData = data[activeTab].slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(data[activeTab].length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -76,7 +91,10 @@ const EventsPage = () => {
           {["Upcoming", "Past"].map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setCurrentPage(1);
+              }}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -102,7 +120,7 @@ const EventsPage = () => {
             transition={{ duration: 0.5 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {data[activeTab].map((event, index) => (
+            {paginatedData.map((event, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -141,6 +159,11 @@ const EventsPage = () => {
             ))}
           </motion.div>
         </AnimatePresence>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Modal for Event Details */}
@@ -150,38 +173,51 @@ const EventsPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={closeModal}
+            className="fixed inset-0 bg-white z-50 overflow-y-auto"
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 15 }}
-              className="bg-white rounded-2xl p-8 shadow-2xl max-w-2xl w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-3xl font-bold text-green-700 mb-4">
+            <div className="container mx-auto px-4 py-8">
+              <motion.button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X size={24} />
+              </motion.button>
+              <h2 className="text-4xl font-bold text-green-700 mb-4">
                 {modalData.title}
               </h2>
-              <p className="text-gray-700 mb-2">
+              <p className="text-gray-700 mb-2 text-xl">
                 <strong>Date:</strong>{" "}
                 {new Date(modalData.eventDate).toDateString()}
               </p>
-              <p className="text-gray-700 mb-4">
+              <p className="text-gray-700 mb-4 text-xl">
                 <strong>Location:</strong> {modalData.location || "TBA"}
               </p>
+              {activeTab === "Upcoming" && modalData.image && (
+                <div className="mb-6">
+                  <Image
+                    src={urlFor(modalData.image).url() || "/placeholder.svg"}
+                    width={800}
+                    height={400}
+                    alt={modalData.title}
+                    className="w-full h-auto rounded-lg"
+                  />
+                </div>
+              )}
               {modalData.eventImages && modalData.eventImages.length > 0 && (
                 <>
-                  <p className="font-semibold text-lg mb-2 text-gray-700">
+                  <p className="font-semibold text-2xl mb-2 text-gray-700">
                     Highlights
                   </p>
                   <ImageSlider images={modalData.eventImages} />
                 </>
               )}
-              <p className="text-gray-700 mt-4 mb-6">{modalData.description}</p>
+              <p className="text-gray-700 mt-6 mb-6 text-lg">
+                {modalData.description}
+              </p>
               {modalData.link && (
-                <p className="mb-6 text-gray-700">
+                <p className="mb-6 text-gray-700 text-lg">
                   Register Here: {"  "}
                   <a
                     href={modalData.link}
@@ -193,17 +229,7 @@ const EventsPage = () => {
                   </a>
                 </p>
               )}
-              <div className="flex justify-between items-center">
-                <motion.button
-                  onClick={closeModal}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg text-lg font-semibold hover:bg-gray-300 transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Close
-                </motion.button>
-              </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

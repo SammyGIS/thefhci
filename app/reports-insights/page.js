@@ -10,6 +10,7 @@ import {
 } from "../hooks/useFetchPage";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
+import Pagination from "../components/Pagination";
 import { urlFor } from "../sanity/utils";
 import Image from "next/image";
 import { Download, ExternalLink } from "lucide-react";
@@ -19,6 +20,8 @@ import { components } from "../lib/portableText";
 const ReportsAndInsights = () => {
   const [activeTab, setActiveTab] = useState("Reports");
   const [selectedPublication, setSelectedPublication] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { reports, loading, error } = useFetchReports();
   const { dashboard } = useFetchDashboard();
@@ -44,6 +47,17 @@ const ReportsAndInsights = () => {
     if (!fileRef) return null;
     const fileId = fileRef.split("-").slice(1).join(".");
     return `https://cdn.sanity.io/files/2aomwlx8/production/${fileId}`;
+  };
+
+  const paginatedData = datas[activeTab].slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(datas[activeTab].length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -77,7 +91,10 @@ const ReportsAndInsights = () => {
           {Object.keys(datas).map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setCurrentPage(1);
+              }}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -103,7 +120,7 @@ const ReportsAndInsights = () => {
             transition={{ duration: 0.5 }}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {datas[activeTab].map((item, index) => (
+              {paginatedData.map((item, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
@@ -151,7 +168,7 @@ const ReportsAndInsights = () => {
                         href={item.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors duration-300"
+                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
                       >
                         <ExternalLink size={18} className="mr-2" /> View
                         Dashboard
@@ -168,15 +185,8 @@ const ReportsAndInsights = () => {
                         <Download size={18} className="mr-2" /> Download Data
                       </a>
                     )}
-                    {activeTab === "Publications" && (
-                      <button
-                        onClick={() => setSelectedPublication(item)}
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                      >
-                        View More
-                      </button>
-                    )}{" "}
-                    {activeTab === "Brochures" && (
+                    {(activeTab === "Publications" ||
+                      activeTab === "Brochures") && (
                       <button
                         onClick={() => setSelectedPublication(item)}
                         className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
@@ -188,6 +198,11 @@ const ReportsAndInsights = () => {
                 </motion.div>
               ))}
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
@@ -224,7 +239,7 @@ const ReportsAndInsights = () => {
               href={selectedPublication.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors duration-300"
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
             >
               <ExternalLink size={18} className="mr-2" /> Read Full Publication
             </a>

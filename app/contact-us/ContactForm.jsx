@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import emailjs from "@emailjs/browser";
 
 const ContactForm = ({ setIsSubmitted }) => {
   const [formData, setFormData] = useState({
@@ -7,6 +8,8 @@ const ContactForm = ({ setIsSubmitted }) => {
     email: "",
     message: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,10 +19,32 @@ const ContactForm = ({ setIsSubmitted }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setFormData({ name: "", email: "", message: "" });
+    setLoading(true);
+    setError("");
+
+    try {
+      await emailjs.send(
+        "service_c41263l", // Get this from EmailJS dashboard
+        "template_uiaf0x5", // Get this from EmailJS dashboard
+        {
+          from_name: formData.name,
+          reply_to: formData.email,
+          message: formData.message,
+          to_email: "famkrishealthcare@gmail.com", // Your email address
+        },
+        "q6-uhGRAZiEtfk1aT", // Get this from EmailJS dashboard
+      );
+
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", message: "" });
+    } catch (err) {
+      setError("Failed to send message. Please try again later.");
+      console.error("EmailJS Error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,7 +52,7 @@ const ContactForm = ({ setIsSubmitted }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-xl"
+      className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-xl text-gray-700"
       onSubmit={handleSubmit}
     >
       {["name", "email", "message"].map((field) => (
@@ -68,6 +93,8 @@ const ContactForm = ({ setIsSubmitted }) => {
         </motion.div>
       ))}
 
+      {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -76,11 +103,14 @@ const ContactForm = ({ setIsSubmitted }) => {
       >
         <motion.button
           type="submit"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300"
+          disabled={loading}
+          whileHover={{ scale: loading ? 1 : 1.05 }}
+          whileTap={{ scale: loading ? 1 : 0.95 }}
+          className={`bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-all duration-300 ${
+            loading ? "opacity-70 cursor-not-allowed" : "hover:bg-green-700"
+          }`}
         >
-          Send Message
+          {loading ? "Sending..." : "Send Message"}
         </motion.button>
       </motion.div>
     </motion.form>
