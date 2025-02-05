@@ -7,6 +7,7 @@ import {
   useFetchDashboard,
   useFetchData,
   useFetchPublications,
+  useFetchBrochures,
 } from "../hooks/useFetchPage";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
@@ -27,13 +28,14 @@ const ReportsAndInsights = () => {
   const { dashboard } = useFetchDashboard();
   const { data } = useFetchData();
   const { publications } = useFetchPublications();
+  const { brochures } = useFetchBrochures();
 
   const datas = {
     Reports: reports,
     Dashboards: dashboard,
     Data: data,
     Publications: publications,
-    Brochures: publications,
+    Brochures: brochures,
   };
 
   if (loading) {
@@ -87,7 +89,7 @@ const ReportsAndInsights = () => {
 
       {/* Tabs */}
       <div className="bg-white shadow-md py-6 sticky top-0 z-10">
-        <div className="container mx-auto flex justify-center space-x-4">
+        <div className="container mx-auto flex flex-wrap justify-center gap-4">
           {Object.keys(datas).map((tab) => (
             <motion.button
               key={tab}
@@ -110,7 +112,7 @@ const ReportsAndInsights = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto py-12">
+      <div className="container mx-auto py-12 md:px-0 px-5">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

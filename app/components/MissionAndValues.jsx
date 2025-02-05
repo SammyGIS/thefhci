@@ -41,7 +41,7 @@ const MissionAndValues = () => {
   ];
 
   return (
-    <div className="space-y-8 text-gray-700">
+    <div className="space-y-8 text-gray-700 md:text-xl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

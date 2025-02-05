@@ -9,41 +9,39 @@ import Link from "next/link";
 import { ChevronRight, X } from "lucide-react";
 import {
   useFetchArticles,
-  useFetchOngoingProjects,
+  useFetchVideo,
   useFetchSponsors,
   useFetchSlider,
   useFetchImpactStats,
   useFetchCompletedProjects,
 } from "./hooks/useFetchPage";
 import Loading from "./components/Loading";
-import { PortableText } from "@portabletext/react";
-import { components } from "./lib/portableText";
 import Marquee from "react-fast-marquee";
 import HeroCarousel from "./components/HeroCarousel";
 import SubscriptionModal from "./components/SubscriptionModal";
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(false);
-  const [email, setEmail] = useState("");
 
   const { articles, loading, error } = useFetchArticles();
   const { completedProjects } = useFetchCompletedProjects();
   const { sponsors } = useFetchSponsors();
   const { slider } = useFetchSlider();
   const { impactStats } = useFetchImpactStats();
+  const { video } = useFetchVideo();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPopup(true);
-    }, 2000);
+    }, 20000);
 
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSubscribe = () => {
-    alert(`Subscribed with: ${email}`);
-    setShowPopup(false);
-    setEmail("");
+  const getFileUrl = (fileRef) => {
+    if (!fileRef) return null;
+    const fileId = fileRef.split("-").slice(1).join(".");
+    return `https://cdn.sanity.io/files/2aomwlx8/production/${fileId}`;
   };
 
   if (loading) {
@@ -151,7 +149,8 @@ export default function Home() {
             className="w-full md:w-1/2 h-96 md:h-[800px] relative md:mt-0 mt-8"
           >
             <video
-              src="/videos/mission-video.mp4"
+              // src="/videos/mission-video.mp4"
+              src={getFileUrl(video?.videoFile?.asset?._ref)}
               autoPlay
               loop
               muted

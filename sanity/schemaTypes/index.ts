@@ -19,6 +19,8 @@ import {ongoingProjects} from './ongoingProject'
 import {completedProjects} from './completedProject'
 import {imageSlider} from './imageSlider'
 import {impactStats} from './impactStats'
+import {videoUpload} from './VideoUpload'
+import {brochure} from './brochures'
 
 export const schemaTypes = [
   article,
@@ -42,4 +44,6 @@ export const schemaTypes = [
   completedProjects,
   imageSlider,
   impactStats,
+  videoUpload,
+  brochure,
 ]

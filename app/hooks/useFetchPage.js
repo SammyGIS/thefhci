@@ -3,6 +3,7 @@ import {
   getAreaOfExpertise,
   getArticles,
   getAuthors,
+  getBrochures,
   getCompletedProjects,
   getDashboard,
   getData,
@@ -21,6 +22,7 @@ import {
   getUpcomingEvents,
   getVideos,
   getVolunteers,
+  getVideo,
 } from "../sanity/utils";
 import { client } from "../sanity/sanity";
 
@@ -91,6 +93,29 @@ export function useFetchAuthors() {
   }, []);
 
   return { authors, loading, error };
+}
+
+export function useFetchBrochures() {
+  const [brochures, setBrochures] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchBrochures() {
+      try {
+        const data = await getBrochures();
+        setBrochures(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchBrochures();
+  }, []);
+
+  return { brochures, loading, error };
 }
 
 export function useFetchCompletedProjects() {
@@ -505,4 +530,27 @@ export function useFetchVolunteers() {
   }, []);
 
   return { volunteers, loading, error };
+}
+
+export function useFetchVideo() {
+  const [video, setVideo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchVideo() {
+      try {
+        const data = await getVideo();
+        setVideo(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchVideo();
+  }, []);
+
+  return { video, loading, error };
 }

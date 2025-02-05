@@ -78,7 +78,7 @@ const CareersPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
         className="relative h-80 bg-cover bg-center"
-        style={{ backgroundImage: `url('/images/interns.jpg')` }}
+        style={{ backgroundImage: `url('/images/1careers.jpg')` }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center text-gray-700">
           <motion.h1

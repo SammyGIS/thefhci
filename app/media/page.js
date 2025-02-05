@@ -77,7 +77,7 @@ const MediaPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
         className="relative h-80 bg-cover bg-center"
-        style={{ backgroundImage: `url('/images/media.jpg')` }}
+        style={{ backgroundImage: `url('/images/1media.jpg')` }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center">
           <motion.h1
@@ -194,7 +194,7 @@ const MediaPage = () => {
                       <Link
                         href={{
                           pathname: `/media/${article.slug.current}`,
-                          query: { articleData: JSON.stringify(article) },
+                          // query: { articleData: JSON.stringify(article) },
                         }}
                         className="mt-4 inline-flex items-center text-green-600 hover:text-green-700 font-semibold"
                       >

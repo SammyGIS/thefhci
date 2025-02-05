@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 const OurStory = () => {
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-hidden text-gray-700">
+    <div className="bg-white shadow-lg rounded-lg overflow-hidden text-gray-700 md:text-xl">
       <div className="p-6">
         <motion.h3
           initial={{ opacity: 0, y: -20 }}

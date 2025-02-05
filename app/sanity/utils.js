@@ -17,6 +17,9 @@ export async function getArticles() {
 export async function getAuthors() {
   return client.fetch(groq`*[_type == "author"]`);
 }
+export async function getBrochures() {
+  return client.fetch(groq`*[_type == "brochure"]`);
+}
 export async function getCompletedProjects() {
   return client.fetch(groq`*[_type == "completedProjects"]`);
 }
@@ -70,6 +73,10 @@ export async function getVideos() {
 }
 export async function getVolunteers() {
   return client.fetch(groq`*[_type == "volunteer"]`);
+}
+
+export async function getVideo() {
+  return client.fetch(groq`*[_type == "videoUpload"][0]`);
 }
 export async function getArticleBySlug(slug) {
   return client.fetch(

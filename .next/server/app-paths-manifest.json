@@ -1,8 +1,8 @@
 {
+  "/who-we-are/page": "app/who-we-are/page.js",
+  "/what-we-do/expertise/[id]/page": "app/what-we-do/expertise/[id]/page.js",
   "/reports-insights/page": "app/reports-insights/page.js",
-  "/media/[slug]/page": "app/media/[slug]/page.js",
-  "/media/page": "app/media/page.js",
-  "/contact-us/page": "app/contact-us/page.js",
-  "/page": "app/page.js",
-  "/careers/page": "app/careers/page.js"
+  "/careers/page": "app/careers/page.js",
+  "/what-we-do/page": "app/what-we-do/page.js",
+  "/events/page": "app/events/page.js"
 }
