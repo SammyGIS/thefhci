@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "createdAt": "2025-02-04T08:08:00.564Z",
+  "createdAt": "2025-02-08T10:42:12.737Z",
   "workspaces": [
     {
       "name": "default",
       "title": "thefhci",
       "basePath": "/",
       "dataset": "production",
-      "schema": "fd43929c.create-schema.json"
+      "schema": "c73e285a.create-schema.json"
     }
   ]
 }

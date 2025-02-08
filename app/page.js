@@ -179,7 +179,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-8"
           >
-            Our Projects Done So Far
+            Project Spotlight
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -424,7 +424,6 @@ export default function Home() {
                   <Link
                     href={{
                       pathname: `/media/${article.slug.current}`,
-                      query: { articleData: JSON.stringify(article) },
                     }}
                     className="mt-4 inline-flex items-center text-green-600 hover:text-green-700 font-semibold"
                   >
@@ -441,14 +440,14 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mt-12"
           >
-            <motion.Link
+            <Link
               href="/media"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="inline-block bg-green-600 text-white text-lg font-semibold py-3 px-6 rounded-lg hover:bg-green-500 transition duration-300"
             >
               View All Articles
-            </motion.Link>
+            </Link>
           </motion.div>
         </div>
       </motion.section>

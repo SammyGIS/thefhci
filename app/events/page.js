@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "react-calendar/dist/Calendar.css";
 import {
   useFetchUpcomingEvents,
@@ -12,27 +12,48 @@ import { urlFor } from "../sanity/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ImageSlider from "../components/ImageSlider";
 import Pagination from "../components/Pagination";
-import { X } from "lucide-react";
+import { X, FileX } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const EventsPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [modalData, setModalData] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const { upcomingEvents, loading, error } = useFetchUpcomingEvents();
-  const { pastEvents } = useFetchPastEvents();
+  const {
+    upcomingEvents,
+    loading: upcomingLoading,
+    error: upcomingError,
+  } = useFetchUpcomingEvents();
+  const {
+    pastEvents,
+    loading: pastLoading,
+    error: pastError,
+  } = useFetchPastEvents();
+
+  const loading = upcomingLoading || pastLoading;
+  const error = upcomingError || pastError;
 
   const data = {
     Upcoming: upcomingEvents,
     Past: pastEvents,
   };
 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["Upcoming", "Past"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   if (loading) {
     return <Loading />;
   }
   if (error) {
-    return <div>Error</div>;
+    return <div>Error loading events</div>;
   }
 
   const openModal = (event) => {
@@ -52,6 +73,12 @@ const EventsPage = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    router.push(`/events?tab=${tab}`, undefined, { shallow: true });
   };
 
   return (
@@ -91,10 +118,7 @@ const EventsPage = () => {
           {["Upcoming", "Past"].map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setCurrentPage(1);
-              }}
+              onClick={() => handleTabChange(tab)}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -118,52 +142,64 @@ const EventsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {paginatedData.map((event, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden"
-              >
-                <Image
-                  src={urlFor(event?.image || event?.eventImages[0]).url()}
-                  width={544}
-                  height={192}
-                  alt={event.title}
-                  className="object-cover object-center w-full h-64"
-                />
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-green-700 mb-2">
-                    {event.title}
-                  </h3>
-                  <p className="text-gray-600 mb-2">
-                    <strong>Date:</strong>{" "}
-                    {new Date(event.eventDate).toDateString()}
-                  </p>
-                  <p className="text-gray-700 mt-2 line-clamp-3">
-                    {event.description}
-                  </p>
-                  <motion.button
-                    onClick={() => openModal(event)}
-                    className="mt-4 inline-block px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+            {paginatedData.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {paginatedData.map((event, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden"
                   >
-                    View Details
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
+                    <Image
+                      src={urlFor(event?.image || event?.eventImages[0]).url()}
+                      width={544}
+                      height={192}
+                      alt={event.title}
+                      className="object-cover object-center w-full h-64"
+                    />
+                    <div className="p-6">
+                      <h3 className="text-2xl font-bold text-green-700 mb-2">
+                        {event.title}
+                      </h3>
+                      <p className="text-gray-600 mb-2">
+                        <strong>Date:</strong>{" "}
+                        {new Date(event.eventDate).toDateString()}
+                      </p>
+                      <p className="text-gray-700 mt-2 line-clamp-3">
+                        {event.description}
+                      </p>
+                      <motion.button
+                        onClick={() => openModal(event)}
+                        className="mt-4 inline-block px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        View Details
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <FileX size={64} className="text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600">
+                  No {activeTab.toLowerCase()} events available at the moment.
+                </p>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
+        {paginatedData.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
 
       {/* Modal for Event Details */}

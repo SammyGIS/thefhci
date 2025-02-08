@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useFetchArticles,
@@ -11,21 +11,46 @@ import Loading from "../components/Loading";
 import Image from "next/image";
 import Link from "next/link";
 import { urlFor } from "../sanity/utils";
-import { ChevronRight, Calendar, Tag } from "lucide-react";
+import { ChevronRight, Calendar, Tag, FileX } from "lucide-react";
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 import Pagination from "../components/Pagination";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const MediaPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Articles");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const { articles, loading, error } = useFetchArticles();
-  const { videos } = useFetchVideos();
-  const { gallery } = useFetchGallery();
+  const {
+    articles,
+    loading: articlesLoading,
+    error: articlesError,
+  } = useFetchArticles();
+  const {
+    videos,
+    loading: videosLoading,
+    error: videosError,
+  } = useFetchVideos();
+  const {
+    gallery,
+    loading: galleryLoading,
+    error: galleryError,
+  } = useFetchGallery();
+
+  const loading = articlesLoading || videosLoading || galleryLoading;
+  const error = articlesError || videosError || galleryError;
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["Articles", "Videos", "Gallery"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   if (loading) {
     return <Loading />;
@@ -58,6 +83,12 @@ const MediaPage = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    router.push(`/media?tab=${tab}`, undefined, { shallow: true });
   };
 
   const formatDate = (dateString) => {
@@ -106,10 +137,7 @@ const MediaPage = () => {
           {Object.keys(tabContent).map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setCurrentPage(1);
-              }}
+              onClick={() => handleTabChange(tab)}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -152,136 +180,150 @@ const MediaPage = () => {
                 Explore a collection of moments captured to tell our story
               </p>
             )}
-            {activeTab === "Articles" && (
-              <div className="space-y-8 max-w-4xl mx-auto">
-                {paginatedData.map((article, index) => (
-                  <motion.div
-                    key={article.slug.current}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden flex flex-col md:flex-row"
-                  >
-                    <Image
-                      src={urlFor(article.image).url() || "/placeholder.svg"}
-                      width={544}
-                      height={300}
-                      alt={article.title}
-                      className="object-cover object-center w-full md:w-1/3 h-64 md:h-auto"
-                    />
-                    <div className="p-6 md:w-2/3 flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-2xl font-bold text-green-700 mb-2">
-                          {article.title}
-                        </h3>
-                        <div className="flex items-center text-gray-600 mb-2">
-                          <Calendar size={16} className="mr-2" />
-                          <span>{formatDate(article._createdAt)}</span>
+            {paginatedData.length > 0 ? (
+              <>
+                {activeTab === "Articles" && (
+                  <div className="space-y-8 max-w-4xl mx-auto">
+                    {paginatedData.map((article, index) => (
+                      <motion.div
+                        key={article.slug.current}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden flex flex-col md:flex-row"
+                      >
+                        <Image
+                          src={
+                            urlFor(article.image).url() || "/placeholder.svg"
+                          }
+                          width={544}
+                          height={300}
+                          alt={article.title}
+                          className="object-cover object-center w-full md:w-1/3 h-64 md:h-auto"
+                        />
+                        <div className="p-6 md:w-2/3 flex flex-col justify-between">
+                          <div>
+                            <h3 className="text-2xl font-bold text-green-700 mb-2">
+                              {article.title}
+                            </h3>
+                            <div className="flex items-center text-gray-600 mb-2">
+                              <Calendar size={16} className="mr-2" />
+                              <span>{formatDate(article._createdAt)}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {article.tags.map((tag, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                                >
+                                  <Tag size={12} className="mr-1" />
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-gray-600 mt-2">
+                              {article.excerpt}
+                            </p>
+                          </div>
+                          <Link
+                            href={`/media/${article.slug.current}`}
+                            className="mt-4 inline-flex items-center text-green-600 hover:text-green-700 font-semibold"
+                          >
+                            Read More <ChevronRight className="ml-1 h-4 w-4" />
+                          </Link>
                         </div>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {article.tags.map((tag, idx) => (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                {activeTab === "Videos" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {paginatedData.map((video, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden"
+                      >
+                        <div className="relative aspect-video">
+                          <Image
+                            src={`https://img.youtube.com/vi/${new URL(video.link).searchParams.get("v")}/hqdefault.jpg`}
+                            alt={video.title}
+                            layout="fill"
+                            objectFit="cover"
+                            className="rounded-t-xl"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <motion.div
+                              whileHover={{ scale: 1.1 }}
+                              className="w-16 h-16 bg-white bg-opacity-80 rounded-full flex items-center justify-center"
                             >
-                              <Tag size={12} className="mr-1" />
-                              {tag}
-                            </span>
-                          ))}
+                              <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-green-600 border-b-8 border-b-transparent ml-1" />
+                            </motion.div>
+                          </div>
                         </div>
-                        <p className="text-gray-600 mt-2">{article.excerpt}</p>
-                      </div>
-                      <Link
-                        href={{
-                          pathname: `/media/${article.slug.current}`,
-                          // query: { articleData: JSON.stringify(article) },
-                        }}
-                        className="mt-4 inline-flex items-center text-green-600 hover:text-green-700 font-semibold"
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-green-700 mb-2">
+                            {video.title}
+                          </h3>
+                          <p className="text-gray-600 mb-4">
+                            {video.description}
+                          </p>
+                          <a
+                            href={video.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 hover:text-green-700 font-semibold inline-flex items-center"
+                          >
+                            Watch Now <ChevronRight className="ml-1 h-4 w-4" />
+                          </a>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                {activeTab === "Gallery" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {paginatedData.map((image, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="relative overflow-hidden group cursor-pointer"
+                        onClick={() => openLightbox(index)}
                       >
-                        Read More <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
+                        <Image
+                          src={urlFor(image.image).url() || "/placeholder.svg"}
+                          alt={image.title}
+                          width={400}
+                          height={300}
+                          className="w-full h-64 object-cover transition duration-300 group-hover:scale-110"
+                        />
+                        <div className="p-4 bg-white">
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            {image.title}
+                          </h3>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <FileX size={64} className="text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600">
+                  No {activeTab.toLowerCase()} available at the moment.
+                </p>
               </div>
             )}
-            {activeTab === "Videos" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {paginatedData.map((video, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden"
-                  >
-                    <div className="relative aspect-video">
-                      <Image
-                        src={`https://img.youtube.com/vi/${new URL(video.link).searchParams.get("v")}/hqdefault.jpg`}
-                        alt={video.title}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-t-xl"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          className="w-16 h-16 bg-white bg-opacity-80 rounded-full flex items-center justify-center"
-                        >
-                          <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-green-600 border-b-8 border-b-transparent ml-1" />
-                        </motion.div>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-green-700 mb-2">
-                        {video.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4">{video.description}</p>
-                      <a
-                        href={video.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-700 font-semibold inline-flex items-center"
-                      >
-                        Watch Now <ChevronRight className="ml-1 h-4 w-4" />
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-            {activeTab === "Gallery" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {paginatedData.map((image, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="relative overflow-hidden group cursor-pointer"
-                    onClick={() => openLightbox(index)}
-                  >
-                    <Image
-                      src={urlFor(image.image).url() || "/placeholder.svg"}
-                      alt={image.title}
-                      width={400}
-                      height={300}
-                      className="w-full h-64 object-cover transition duration-300 group-hover:scale-110"
-                    />
-                    <div className="p-4 bg-white">
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {image.title}
-                      </h3>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
           </motion.div>
         </AnimatePresence>
       </div>

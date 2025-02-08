@@ -57,17 +57,17 @@ const ExpertiseSlider = ({ areaOfExpertise }) => {
             initial={{ y: 20 }}
             animate={{ y: 0 }}
             transition={{ delay: arrayIndex * 0.1 }}
-            className="bg-white p-6 rounded-xl shadow-lg text-center flex flex-col justify-between h-[400px]"
+            className="bg-white p-6 rounded-xl shadow-lg text-center flex flex-col justify-between h-[500px]"
           >
             <img
               src={urlFor(area.image).url() || "/placeholder.svg"}
               alt={area.title}
-              className="w-24 h-24 object-cover rounded-full mx-auto mb-6"
+              className="w-full h-64 object-cover object-center mx-auto mb-6"
             />
             <h3 className="text-2xl font-bold text-gray-800 mb-4">
               {area.title}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 md:text-lg">
               {area.description.slice(0, 100)}
               {area.description.length > 100 ? "..." : ""}
             </p>

@@ -1,36 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFetchTeamMembers, useFetchPartners } from "../hooks/useFetchPage";
 import Loading from "../components/Loading";
 import { urlFor } from "../sanity/utils";
 import OurStory from "../components/OurStory";
 import MissionAndValues from "../components/MissionAndValues";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function WhoWeAre() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedSubmenu, setSelectedSubmenu] = useState("Our Story");
 
   const { teamMembers, loading, error } = useFetchTeamMembers();
   const { partners } = useFetchPartners();
 
   const submenuContent = {
-    "Our Story": {
+    "our-story": {
       title: "Our Story",
       component: <OurStory />,
     },
-    "Our Team": {
+    "our-team": {
       title: "Our Team",
       teamMembers: teamMembers,
     },
-    "Mission & Values": {
+    "mission-and-values": {
       title: "Mission & Values",
       component: <MissionAndValues />,
     },
-    "Partners & Supporters": {
+    "partners-and-supporters": {
       title: "Partners & Supporters",
       partners: partners,
     },
+  };
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && submenuContent[tab]) {
+      setSelectedSubmenu(submenuContent[tab].title);
+    }
+  }, [searchParams, submenuContent]); // Added submenuContent to dependencies
+
+  const handleSubmenuClick = (submenu) => {
+    const paramKey = submenu
+      .toLowerCase()
+      .replace(/ & /g, "-and-")
+      .replace(/ /g, "-");
+    router.push(`/who-we-are?tab=${paramKey}`, undefined, { shallow: true });
+    setSelectedSubmenu(submenu);
   };
 
   if (loading) {
@@ -69,16 +88,18 @@ export default function WhoWeAre() {
             {Object.keys(submenuContent).map((submenu) => (
               <motion.button
                 key={submenu}
-                onClick={() => setSelectedSubmenu(submenu)}
+                onClick={() =>
+                  handleSubmenuClick(submenuContent[submenu].title)
+                }
                 className={`px-4 py-2 rounded transition-all text-sm sm:text-base ${
-                  selectedSubmenu === submenu
+                  selectedSubmenu === submenuContent[submenu].title
                     ? "bg-white text-green-600"
                     : "bg-green-700 text-white hover:bg-green-800"
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {submenu}
+                {submenuContent[submenu].title}
               </motion.button>
             ))}
           </div>
@@ -97,7 +118,7 @@ export default function WhoWeAre() {
         >
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-6 text-center text-green-600">
-              {submenuContent[selectedSubmenu].title}
+              {selectedSubmenu}
             </h2>
 
             {selectedSubmenu === "Our Team" && (
@@ -122,30 +143,39 @@ export default function WhoWeAre() {
             {(selectedSubmenu === "Our Story" ||
               selectedSubmenu === "Mission & Values") && (
               <div className="max-w-4xl mx-auto">
-                {submenuContent[selectedSubmenu].component}
+                {
+                  submenuContent[
+                    Object.keys(submenuContent).find(
+                      (key) => submenuContent[key].title === selectedSubmenu,
+                    )
+                  ].component
+                }
               </div>
             )}
 
             {/* "Our Team" Submenu */}
             {selectedSubmenu === "Our Team" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                {submenuContent["Our Team"].teamMembers.map((member, index) => (
+                {submenuContent["our-team"].teamMembers.map((member, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="bg-white rounded-lg shadow-lg p-4 hover:shadow-xl transition-all"
+                    className="bg-white rounded-lg shadow-lg p-4 hover:shadow-xl transition-all text-center"
                   >
                     <img
                       src={urlFor(member.image).url() || "/placeholder.svg"}
                       alt={member.name}
                       className="h-32 w-32 mx-auto rounded-full object-cover"
                     />
-                    <h4 className="mt-4 text-lg font-semibold">
+                    <h4 className="mt-4 text-lg font-semibold text-gray-700">
                       {member.name}
                     </h4>
                     <p className="text-gray-600 font-semibold">{member.role}</p>
+                    <p className="text-gray-700 font-light text-sm">
+                      {member?.description}
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -154,7 +184,7 @@ export default function WhoWeAre() {
             {/* "Partners & Supporters" Submenu */}
             {selectedSubmenu === "Partners & Supporters" && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-                {submenuContent["Partners & Supporters"].partners.map(
+                {submenuContent["partners-and-supporters"].partners.map(
                   (partner, index) => (
                     <motion.div
                       key={index}

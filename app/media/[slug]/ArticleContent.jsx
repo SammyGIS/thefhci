@@ -72,14 +72,15 @@ export default function ArticleContent({ article }) {
             <PortableText value={article.content} components={components} />
           </motion.div>
         </div>
-
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-green-600/90 float-end mb-10 z-40 backdrop-blur-sm text-white rounded-lg font-semibold  transition-all duration-300 flex items-center gap-2 shadow-md"
-        >
-          Share
-          <Share2 />
-        </button>
+        <div className="flex items-center justify-end my-10">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 z-40 text-green-600 flex items-center gap-2"
+          >
+            Share
+            <Share2 />
+          </button>
+        </div>
       </motion.div>
 
       {isModalOpen && (

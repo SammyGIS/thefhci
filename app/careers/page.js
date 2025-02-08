@@ -11,19 +11,37 @@ import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { components } from "../lib/portableText";
-import { OctagonX } from "lucide-react";
+import { OctagonX, FileX } from "lucide-react";
 import Pagination from "../components/Pagination";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const CareersPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Job Openings");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const { jobOpenings, loading, error } = useFetchJobOpenings();
-  const { volunteers } = useFetchVolunteers();
-  const { internships } = useFetchInternships();
+  const {
+    jobOpenings,
+    loading: jobOpeningsLoading,
+    error: jobOpeningsError,
+  } = useFetchJobOpenings();
+  const {
+    volunteers,
+    loading: volunteersLoading,
+    error: volunteersError,
+  } = useFetchVolunteers();
+  const {
+    internships,
+    loading: internshipsLoading,
+    error: internshipsError,
+  } = useFetchInternships();
+
+  const loading = jobOpeningsLoading || volunteersLoading || internshipsLoading;
+  const error = jobOpeningsError || volunteersError || internshipsError;
 
   useEffect(() => {
     if (isModalOpen) {
@@ -36,11 +54,18 @@ const CareersPage = () => {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["Job Openings", "Internships", "Volunteer"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   if (loading) {
     return <Loading />;
   }
   if (error) {
-    return <div>Error</div>;
+    return <div>Error loading content</div>;
   }
 
   const jobData = {
@@ -68,6 +93,14 @@ const CareersPage = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    router.push(`/careers?tab=${tab.replace(" ", "-")}`, undefined, {
+      shallow: true,
+    });
   };
 
   return (
@@ -111,10 +144,7 @@ const CareersPage = () => {
           {["Job Openings", "Internships", "Volunteer"].map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setCurrentPage(1);
-              }}
+              onClick={() => handleTabChange(tab)}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -165,50 +195,62 @@ const CareersPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {paginatedData.map((position, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden"
-              >
-                <Image
-                  src="/images/thumbnail.jpg"
-                  width={400}
-                  height={250}
-                  alt="sdg image"
-                  className="w-full object-cover h-48"
-                />
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-green-700 mb-2">
-                    {position.jobTitle ||
-                      position.volunteerTitle ||
-                      position.internshipTitle}
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    <strong>Location:</strong> {position.location}
-                  </p>
-                  <motion.button
-                    onClick={() => handleApplyClick(position)}
-                    className="mt-4 inline-block px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+            {paginatedData.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {paginatedData.map((position, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden"
                   >
-                    Apply Now
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
+                    <Image
+                      src="/images/thumbnail.jpg"
+                      width={400}
+                      height={250}
+                      alt="sdg image"
+                      className="w-full object-cover h-48"
+                    />
+                    <div className="p-6">
+                      <h3 className="text-2xl font-bold text-green-700 mb-2">
+                        {position.jobTitle ||
+                          position.volunteerTitle ||
+                          position.internshipTitle}
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        <strong>Location:</strong> {position.location}
+                      </p>
+                      <motion.button
+                        onClick={() => handleApplyClick(position)}
+                        className="mt-4 inline-block px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-all duration-300"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Apply Now
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <FileX size={64} className="text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600">
+                  No {activeTab} available at the moment.
+                </p>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
+        {paginatedData.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
 
       {/* Apply Modal */}

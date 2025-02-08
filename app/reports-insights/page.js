@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useFetchReports,
@@ -14,21 +14,40 @@ import Modal from "../components/Modal";
 import Pagination from "../components/Pagination";
 import { urlFor } from "../sanity/utils";
 import Image from "next/image";
-import { Download, ExternalLink } from "lucide-react";
+import { Download, ExternalLink, FileX } from "lucide-react";
 import { PortableText } from "@portabletext/react";
 import { components } from "../lib/portableText";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const ReportsAndInsights = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Reports");
   const [selectedPublication, setSelectedPublication] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const { reports, loading, error } = useFetchReports();
-  const { dashboard } = useFetchDashboard();
-  const { data } = useFetchData();
-  const { publications } = useFetchPublications();
-  const { brochures } = useFetchBrochures();
+  const {
+    reports,
+    loading: reportsLoading,
+    error: reportsError,
+  } = useFetchReports();
+  const {
+    dashboard,
+    loading: dashboardLoading,
+    error: dashboardError,
+  } = useFetchDashboard();
+  const { data, loading: dataLoading, error: dataError } = useFetchData();
+  const {
+    publications,
+    loading: publicationsLoading,
+    error: publicationsError,
+  } = useFetchPublications();
+  const {
+    brochures,
+    loading: brochuresLoading,
+    error: brochuresError,
+  } = useFetchBrochures();
 
   const datas = {
     Reports: reports,
@@ -37,6 +56,26 @@ const ReportsAndInsights = () => {
     Publications: publications,
     Brochures: brochures,
   };
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && Object.keys(datas).includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]); // Removed datas from dependency array
+
+  const loading =
+    reportsLoading ||
+    dashboardLoading ||
+    dataLoading ||
+    publicationsLoading ||
+    brochuresLoading;
+  const error =
+    reportsError ||
+    dashboardError ||
+    dataError ||
+    publicationsError ||
+    brochuresError;
 
   if (loading) {
     return <Loading />;
@@ -60,6 +99,14 @@ const ReportsAndInsights = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    router.push(`/reports-insights?tab=${tab}`, undefined, {
+      shallow: true,
+    });
   };
 
   return (
@@ -93,10 +140,7 @@ const ReportsAndInsights = () => {
           {Object.keys(datas).map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setCurrentPage(1);
-              }}
+              onClick={() => handleTabChange(tab)}
               className={`px-6 py-2 rounded-lg text-lg font-semibold ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
@@ -121,90 +165,101 @@ const ReportsAndInsights = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {paginatedData.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                >
-                  <Image
-                    src={urlFor(item.image).url() || "/placeholder.svg"}
-                    alt={item.title}
-                    width={400}
-                    height={200}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-green-700 mb-2">
-                      {item.title}
-                    </h3>
-                    {item.tags && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {item.tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-gray-600 mb-4">{item.information}</p>
-                    {activeTab === "Reports" && (
-                      <a
-                        href={getFileUrl(item?.file?.asset?._ref)}
-                        target="_blank"
-                        download
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                        rel="noreferrer"
-                      >
-                        <Download size={18} className="mr-2" /> Download
-                      </a>
-                    )}
-                    {activeTab === "Dashboards" && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                      >
-                        <ExternalLink size={18} className="mr-2" /> View
-                        Dashboard
-                      </a>
-                    )}
-                    {activeTab === "Data" && (
-                      <a
-                        href={getFileUrl(item?.excelFile?.asset?._ref)}
-                        target="_blank"
-                        download
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                        rel="noreferrer"
-                      >
-                        <Download size={18} className="mr-2" /> Download Data
-                      </a>
-                    )}
-                    {(activeTab === "Publications" ||
-                      activeTab === "Brochures") && (
-                      <button
-                        onClick={() => setSelectedPublication(item)}
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
-                      >
-                        View More
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            {paginatedData.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {paginatedData.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                  >
+                    <Image
+                      src={urlFor(item.image).url() || "/placeholder.svg"}
+                      alt={item.title}
+                      width={400}
+                      height={200}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-green-700 mb-2">
+                        {item.title}
+                      </h3>
+                      {item.tags && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {item.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-gray-600 mb-4">{item.information}</p>
+                      {activeTab === "Reports" && (
+                        <a
+                          href={getFileUrl(item?.file?.asset?._ref)}
+                          target="_blank"
+                          download
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                          rel="noreferrer"
+                        >
+                          <Download size={18} className="mr-2" /> Download
+                        </a>
+                      )}
+                      {activeTab === "Dashboards" && (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                        >
+                          <ExternalLink size={18} className="mr-2" /> View
+                          Dashboard
+                        </a>
+                      )}
+                      {activeTab === "Data" && (
+                        <a
+                          href={getFileUrl(item?.excelFile?.asset?._ref)}
+                          target="_blank"
+                          download
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                          rel="noreferrer"
+                        >
+                          <Download size={18} className="mr-2" /> Download Data
+                        </a>
+                      )}
+                      {(activeTab === "Publications" ||
+                        activeTab === "Brochures") && (
+                        <button
+                          onClick={() => setSelectedPublication(item)}
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                        >
+                          View More
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <FileX size={64} className="text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600">
+                  No {activeTab} available at the moment.
+                </p>
+              </div>
+            )}
+            {paginatedData.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

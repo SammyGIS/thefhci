@@ -15,7 +15,6 @@ export const teamMember = defineType({
       name: 'role',
       title: 'Role',
       type: 'string',
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'image',
@@ -25,6 +24,11 @@ export const teamMember = defineType({
         hotspot: true,
       },
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
     }),
   ],
   preview: {
