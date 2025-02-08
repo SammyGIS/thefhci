@@ -36,16 +36,6 @@ export const pastEvent = defineType({
       of: [{type: 'image', options: {hotspot: true}}],
       validation: (Rule) => Rule.optional(),
     }),
-    defineField({
-      name: 'link',
-      title: 'Event Link',
-      type: 'url',
-      validation: (Rule) =>
-        Rule.uri({
-          allowRelative: false,
-          scheme: ['http', 'https'],
-        }).optional(),
-    }),
   ],
   preview: {
     select: {

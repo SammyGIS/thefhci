@@ -1,236 +1,309 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  useFetchReports,
+  useFetchDashboard,
+  useFetchData,
+  useFetchPublications,
+  useFetchBrochures,
+} from "../hooks/useFetchPage";
+import Loading from "../components/Loading";
+import Modal from "../components/Modal";
+import Pagination from "../components/Pagination";
+import { urlFor } from "../sanity/utils";
+import Image from "next/image";
+import { Download, ExternalLink, FileX } from "lucide-react";
+import { PortableText } from "@portabletext/react";
+import { components } from "../lib/portableText";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const ReportsAndInsights = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Reports");
+  const [selectedPublication, setSelectedPublication] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-  // Updated data structure
-  const data = {
-    Reports: [
-      {
-        image: "/images/report.jpg",
-        title: "Annual Report 2023",
-        description: "Detailed insights and performance overview of 2023.",
-      },
-      {
-        image: "/images/thumbnail.jpg",
-        title: "Project Report 2023",
-        description: "A comprehensive review of all ongoing projects.",
-      },
-      {
-        image: "/images/report.jpg",
-        title: "Annual Report 2023",
-        description: "Detailed insights and performance overview of 2023.",
-      },
-      {
-        image: "/images/thumbnail.jpg",
-        title: "Project Report 2023",
-        description: "A comprehensive review of all ongoing projects.",
-      },
-    ],
-    Dashboards: [
-      {
-        image: "/images/dashboard.jpg",
-        title: "Interactive Wastewater Map",
-        description: "Explore real-time wastewater data across the US.",
-        link: "#",
-      },
-      {
-        image: "/images/dashboard.jpg",
-        title: "Healthcare Analytics Dashboard",
-        description: "Track key healthcare performance indicators.",
-        link: "#",
-      },
-      {
-        image: "/images/dashboard.jpg",
-        title: "Interactive Wastewater Map",
-        description: "Explore real-time wastewater data across the US.",
-        link: "#",
-      },
-      {
-        image: "/images/dashboard.jpg",
-        title: "Healthcare Analytics Dashboard",
-        description: "Track key healthcare performance indicators.",
-        link: "#",
-      },
-    ],
-    Data: [
-      {
-        image: "/images/data.jpg",
-        title: "Health Survey Data 2023",
-        tags: ["Health", "Survey"],
-        downloadLink: "#",
-      },
-      {
-        image: "/images/data.jpg",
-        title: "Population Statistics",
-        tags: ["Demographics", "Population"],
-        downloadLink: "#",
-      },
-    ],
-    Publications: [
-      {
-        image: "/images/publications.jpg",
-        title: "Impact of Healthcare Innovations",
-        description: "A deep dive into the impact of recent innovations.",
-        link: "#",
-      },
-      {
-        image: "/images/publications.jpg",
-        title: "Sustainability Trends 2023",
-        description: "Key insights into global sustainability trends.",
-        link: "#",
-      },
-      {
-        image: "/images/publications.jpg",
-        title: "Impact of Healthcare Innovations",
-        description: "A deep dive into the impact of recent innovations.",
-        link: "#",
-      },
-      {
-        image: "/images/publications.jpg",
-        title: "Sustainability Trends 2023",
-        description: "Key insights into global sustainability trends.",
-        link: "#",
-      },
-    ],
+  const {
+    reports,
+    loading: reportsLoading,
+    error: reportsError,
+  } = useFetchReports();
+  const {
+    dashboard,
+    loading: dashboardLoading,
+    error: dashboardError,
+  } = useFetchDashboard();
+  const { data, loading: dataLoading, error: dataError } = useFetchData();
+  const {
+    publications,
+    loading: publicationsLoading,
+    error: publicationsError,
+  } = useFetchPublications();
+  const {
+    brochures,
+    loading: brochuresLoading,
+    error: brochuresError,
+  } = useFetchBrochures();
+
+  const datas = {
+    Reports: reports,
+    Dashboards: dashboard,
+    Data: data,
+    Publications: publications,
+    Brochures: brochures,
+  };
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && Object.keys(datas).includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]); // Removed datas from dependency array
+
+  const loading =
+    reportsLoading ||
+    dashboardLoading ||
+    dataLoading ||
+    publicationsLoading ||
+    brochuresLoading;
+  const error =
+    reportsError ||
+    dashboardError ||
+    dataError ||
+    publicationsError ||
+    brochuresError;
+
+  if (loading) {
+    return <Loading />;
+  }
+  if (error) {
+    return <div>Error loading content</div>;
+  }
+
+  const getFileUrl = (fileRef) => {
+    if (!fileRef) return null;
+    const fileId = fileRef.split("-").slice(1).join(".");
+    return `https://cdn.sanity.io/files/2aomwlx8/production/${fileId}`;
+  };
+
+  const paginatedData = datas[activeTab].slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(datas[activeTab].length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    router.push(`/reports-insights?tab=${tab}`, undefined, {
+      shallow: true,
+    });
   };
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-gray-50 min-h-screen"
+    >
       {/* Header Section */}
-      <section
-        className="relative h-64 bg-cover bg-center"
+      <motion.section
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="relative h-80 bg-cover bg-center"
         style={{ backgroundImage: `url('/images/thumbnail.jpg')` }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
-          <h1 className="text-4xl text-white font-bold">Reports & Insights</h1>
-          <p className="text-white mt-4 max-w-xl text-center">
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center">
+          <h1 className="text-5xl text-white font-bold mb-4">
+            Reports & Insights
+          </h1>
+          <p className="text-white text-xl max-w-xl text-center">
             Dive into our data, reports, and findings.
           </p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Tabs */}
-      <div className="bg-gray-100 py-4">
-        <div className="container mx-auto flex justify-center space-x-4">
-          {["Reports", "Dashboards", "Data", "Publications"].map((tab) => (
-            <button
+      <div className="bg-white shadow-md py-6 sticky top-0 z-10">
+        <div className="container mx-auto flex flex-wrap justify-center gap-4">
+          {Object.keys(datas).map((tab) => (
+            <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded ${
-                activeTab === tab ? "bg-green-600 text-white" : "bg-white text-green-600"
-              } transition`}
+              onClick={() => handleTabChange(tab)}
+              className={`px-6 py-2 rounded-lg text-lg font-semibold ${
+                activeTab === tab
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              } transition-all duration-300`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {tab}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto py-8">
-        {/* Reports Section */}
-        {activeTab === "Reports" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {data.Reports.map((report, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg p-4">
-                <img
-                  src={report.image}
-                  alt={report.title}
-                  className="rounded-t-lg w-full h-32 object-cover"
-                />
-                <h3 className="text-lg font-bold text-green-700 mt-2">{report.title}</h3>
-                <p className="text-gray-700 mt-2">{report.description}</p>
-                <button className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                  View More
-                </button>
+      <div className="container mx-auto py-12 md:px-0 px-5">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+          >
+            {paginatedData.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {paginatedData.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                  >
+                    <Image
+                      src={urlFor(item.image).url() || "/placeholder.svg"}
+                      alt={item.title}
+                      width={400}
+                      height={200}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-green-700 mb-2">
+                        {item.title}
+                      </h3>
+                      {item.tags && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {item.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-gray-600 mb-4">{item.information}</p>
+                      {activeTab === "Reports" && (
+                        <a
+                          href={getFileUrl(item?.file?.asset?._ref)}
+                          target="_blank"
+                          download
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                          rel="noreferrer"
+                        >
+                          <Download size={18} className="mr-2" /> Download
+                        </a>
+                      )}
+                      {activeTab === "Dashboards" && (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                        >
+                          <ExternalLink size={18} className="mr-2" /> View
+                          Dashboard
+                        </a>
+                      )}
+                      {activeTab === "Data" && (
+                        <a
+                          href={getFileUrl(item?.excelFile?.asset?._ref)}
+                          target="_blank"
+                          download
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                          rel="noreferrer"
+                        >
+                          <Download size={18} className="mr-2" /> Download Data
+                        </a>
+                      )}
+                      {(activeTab === "Publications" ||
+                        activeTab === "Brochures") && (
+                        <button
+                          onClick={() => setSelectedPublication(item)}
+                          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+                        >
+                          View More
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Dashboards Section */}
-        {activeTab === "Dashboards" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {data.Dashboards.map((dashboard, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg p-4">
-                <img
-                  src={dashboard.image}
-                  alt={dashboard.title}
-                  className="rounded-t-lg w-full h-32 object-cover"
-                />
-                <h3 className="text-lg font-bold text-green-700">
-                  <a href={dashboard.link} target="_blank" rel="noopener noreferrer">
-                    {dashboard.title}
-                  </a>
-                </h3>
-                <p className="text-gray-700 mt-2">
-                  <a href={dashboard.link} target="_blank" rel="noopener noreferrer">
-                    {dashboard.description}
-                  </a>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <FileX size={64} className="text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600">
+                  No {activeTab} available at the moment.
                 </p>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Data Section */}
-        {activeTab === "Data" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {data.Data.map((dataset, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg p-4">
-                <img
-                  src={dataset.image}
-                  alt={dataset.title}
-                  className="rounded-t-lg w-full h-32 object-cover"
-                />
-                <h3 className="text-lg font-bold text-green-700">{dataset.title}</h3>
-                <div className="flex space-x-2 mt-2">
-                  {dataset.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-green-600 text-white rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <button className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                  Download
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Publications Section */}
-        {activeTab === "Publications" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {data.Publications.map((pub, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg p-4">
-                <img
-                  src={pub.image}
-                  alt={pub.title}
-                  className="rounded-t-lg w-full h-32 object-cover"
-                />
-                <h3 className="text-lg font-bold text-green-700">{pub.title}</h3>
-                <p className="text-gray-700 mt-2">{pub.description}</p>
-                <a
-                  href={pub.link}
-                  className="mt-4 inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  View More
-                </a>
-              </div>
-            ))}
-          </div>
-        )}     
+            )}
+            {paginatedData.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
-        
 
-    </div>
+      {/* Publication Modal */}
+      <Modal
+        isOpen={!!selectedPublication}
+        onClose={() => setSelectedPublication(null)}
+      >
+        {selectedPublication && (
+          <div>
+            <h2 className="text-2xl font-bold text-green-700 mb-4">
+              {selectedPublication.title}
+            </h2>
+            <Image
+              src={
+                urlFor(selectedPublication.image).url() || "/placeholder.svg"
+              }
+              alt={selectedPublication.title}
+              width={600}
+              height={300}
+              className="w-full h-64 object-cover rounded-lg mb-4"
+            />
+            <p className="text-gray-700 mb-4">
+              {selectedPublication.information}
+            </p>
+            <div className="text-gray-700 mb-5">
+              <PortableText
+                value={selectedPublication?.wysiwygEditor}
+                components={components}
+              />
+            </div>
+            <a
+              href={selectedPublication.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300"
+            >
+              <ExternalLink size={18} className="mr-2" /> Read Full Publication
+            </a>
+          </div>
+        )}
+      </Modal>
+    </motion.div>
   );
 };
 

@@ -1,7 +1,19 @@
 // next.config.js
 module.exports = {
-    images: {
-      domains: ['https://www.pathfinder.org'], // Replace with the domain of your external image URL
-    },
-  };
-  
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.sanity.io",
+      },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+      },
+      {
+        protocol: "https",
+        hostname: "www.pathfinder.org",
+      },
+    ],
+  },
+};

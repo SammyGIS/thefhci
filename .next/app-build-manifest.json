@@ -6,27 +6,42 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/events/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/events/page.css",
-      "static/chunks/app/events/page.js"
-    ],
     "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
+    "/who-we-are/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/who-we-are/page.js"
+    ],
     "/what-we-do/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/what-we-do/page.css",
       "static/chunks/app/what-we-do/page.js"
     ],
-    "/_not-found/page": [
+    "/reports-insights/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/reports-insights/page.js"
+    ],
+    "/media/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/media/page.css",
+      "static/chunks/app/media/page.js"
+    ],
+    "/careers/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/careers/page.js"
+    ],
+    "/events/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/events/page.css",
+      "static/chunks/app/events/page.js"
     ]
   }
 }
